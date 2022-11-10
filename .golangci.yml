@@ -1,0 +1,60 @@
+# golangci-lint has version 1.50.1 built from 8926a95f on 2022-10-22T10:50:47Z
+
+output:
+  format: tab
+  path-prefix: "internal"
+  sort-results: true
+
+linters:
+  enable-all: true
+  disable:
+    - lll
+    - gosec
+    - golint
+    - interfacer
+    - funlen
+    - gocognit
+    - gomnd
+    - godox
+    - exhaustivestruct
+    - exhaustive
+    - noctx
+    - ireturn
+    - containedctx
+    - nilnil
+    - revive
+    - tagliatelle
+    - ifshort
+    - predeclared
+    - maligned
+    - scopelint
+    - exhaustruct
+
+linters-settings:
+  cyclop:
+    max-complexity: 10
+  depguard:
+    include-go-root: true
+  goimports:
+    local-prefixes: github.com/x-x-x-Ilya/astrologer
+  wsl:
+    allow-cuddle-declarations: false
+  gci:
+    section-separators:
+      - newLine
+    sections:
+      [
+        standard,
+        default,
+        prefix(github.com/x-x-x-Ilya/astrologer/internal),
+      ]
+  varnamelen:
+    ignore-names:
+      [ i, j, k, n, err, ok, w, r, db ]
+  nlreturn:
+    block-size: 2
+  gofumpt:
+    lang-version: "1.19"
+
+issues:
+  exclude-use-default: false
