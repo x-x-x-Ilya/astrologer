@@ -2,16 +2,26 @@ package services
 
 import (
 	"os"
-	"strconv"
 )
 
 type StorageServiceI interface {
-	Save(id int64, file []byte) error
-	Read(id int64) ([]byte, error)
+	Save(fileName string, data []byte) error
+	Read(fileName string) ([]byte, error)
 }
 
-func Save(id int64) error {
-	_, err := os.Create(strconv.FormatInt(id, 10))
+type StorageService struct{}
+
+func NewStorageService() StorageServiceI {
+	return StorageService{}
+}
+
+func (StorageService) Save(fileName string, data []byte) error {
+	f, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(data)
 	if err != nil {
 		return err
 	}
@@ -19,8 +29,8 @@ func Save(id int64) error {
 	return nil
 }
 
-func Read(id int64) ([]byte, error) {
-	dat, err := os.ReadFile(strconv.FormatInt(id, 10))
+func (StorageService) Read(fileName string) ([]byte, error) {
+	dat, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
 	}

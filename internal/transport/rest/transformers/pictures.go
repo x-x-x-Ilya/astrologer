@@ -1,22 +1,36 @@
 package transformers
 
-import "time"
+import (
+	"github.com/x-x-x-Ilya/astrologer/internal/models"
+	"time"
+)
 
-type PictureParams struct {
+type PicturesParams struct {
 	Limit  int64 `schema:"limit"`
 	Offset int64 `schema:"offset"`
 }
 
-type Picture struct {
+type PictureParams struct {
 	Date time.Time `json:"date"`
 }
 
-func ToRest(domain interface{}) Picture {
+type Picture struct {
+	File []byte    `json:"file"`
+	Date time.Time `json:"date"`
+}
+
+func ToRest(domain models.Picture) Picture {
 	return Picture{
-		time.Now(),
+		domain.File(),
+		domain.Date(),
 	}
 }
 
-func (p *PictureParams) PicturesParametersToDomain() interface{} {
-	return nil
+func ToRests(domains models.Pictures) []Picture {
+	rests := make([]Picture, 0, len(domains))
+	for _, picture := range domains {
+		rests = append(rests, ToRest(picture))
+	}
+
+	return rests
 }

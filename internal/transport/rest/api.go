@@ -43,11 +43,11 @@ func NewRouter() (*Router, error) {
 // GET pictures?limit=1&offset=0 (картинки дня всего альбома)
 // GET pictures?date=2022-11-11 (картинка дня на указанный день)
 
-func (r *Router) RegisterPicturesRoutes(controller *Pictures) *Router {
+func (r *Router) RegisterPicturesRoutes(controller *PicturesController) *Router {
 	pictures := r.PathPrefix("/pictures").Subrouter()
 
 	pictures.HandleFunc("", controller.pictures).Methods(http.MethodGet, http.MethodOptions).Queries("limit", "{limit:[0-9]+}", "offset", "{offset:[0-9]+}")
-	pictures.HandleFunc("", controller.pictureOfTheDay).Methods(http.MethodGet, http.MethodOptions).Queries("date", "{date:YYYY-MM-DD}")
+	pictures.HandleFunc("", controller.pictureOfTheDay).Methods(http.MethodGet, http.MethodOptions).Queries("date", "{date:\\d{4}-\\d{2}-\\d{2}}")
 
 	return r
 }

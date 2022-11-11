@@ -2,19 +2,29 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/x-x-x-Ilya/astrologer/internal/services"
-	"net/http"
-	"net/url"
-
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/x-x-x-Ilya/astrologer/internal/services"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/transport/rest/transformers"
 )
 
 type PicturesController struct {
 	picturesService services.PicturesServiceI
+}
+
+func NewPicturesController(picturesService services.PicturesServiceI) (*PicturesController, error) {
+	if picturesService == nil {
+		return nil, errors.New("nil")
+	}
+
+	return &PicturesController{
+		picturesService,
+	}, nil
 }
 
 func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +34,7 @@ func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var reqParams transformers.PictureParams
+	var reqParams transformers.PicturesParams
 
 	err = schema.NewDecoder().Decode(&reqParams, values)
 	if err != nil {
@@ -32,19 +42,13 @@ func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainParams := reqParams.PicturesParametersToDomain()
-	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, err)
-		return
-	}
-
-	pictures, err := c.picturesService.Pictures(domainParams)
+	pictures, err := c.picturesService.Pictures(reqParams.Limit, reqParams.Offset)
 	if err != nil {
 		respondWithJSON(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res := transformers.ToRest(pictures)
+	res := transformers.ToRests(pictures)
 	if err != nil {
 		respondWithJSON(w, http.StatusInternalServerError, err)
 		return
@@ -62,19 +66,13 @@ func (c *PicturesController) pictureOfTheDay(w http.ResponseWriter, r *http.Requ
 
 	var reqParams transformers.PictureParams
 
-	err = schema.NewDecoder().Decode(&reqParams, values)
+	reqParams.Date, err = time.Parse("2006-01-02", values.Get("date"))
 	if err != nil {
 		respondWithJSON(w, http.StatusBadRequest, err)
 		return
 	}
 
-	domainParams := reqParams.PicturesParametersToDomain()
-	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, err)
-		return
-	}
-
-	pictures, err := c.picturesService.PictureOfTheDay(domainParams)
+	pictures, err := c.picturesService.PictureOfTheDay(reqParams.Date)
 	if err != nil {
 		respondWithJSON(w, http.StatusInternalServerError, err)
 		return

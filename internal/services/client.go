@@ -11,7 +11,8 @@ import (
 )
 
 type ClientServiceI interface {
-	DoRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error)
+	Get(url string, queryParameters map[string][]string) (*http.Response, error)
+	Post(url string, body any) (*http.Response, error)
 }
 
 type ClientService struct {
@@ -26,7 +27,15 @@ func NewClientService(timeout time.Duration) ClientServiceI {
 	}
 }
 
-func (ClientService) DoRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error) {
+func (s ClientService) Get(url string, queryParameters map[string][]string) (*http.Response, error) {
+	return s.doRequest(http.MethodGet, url, nil, queryParameters)
+}
+
+func (s ClientService) Post(url string, body any) (*http.Response, error) {
+	return s.doRequest(http.MethodGet, url, body, nil)
+}
+
+func (ClientService) doRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error) {
 	var reqBody io.Reader
 	if body != nil {
 		jsonBody, err := json.Marshal(body)
@@ -37,7 +46,7 @@ func (ClientService) DoRequest(method string, url string, body interface{}, quer
 		reqBody = bytes.NewReader(jsonBody)
 	}
 
-	req, err := http.NewRequest(method, url, reqBody)
+	req, err := http.NewRequest(method, "https://"+url, reqBody)
 	if err != nil {
 		return nil, err
 	}

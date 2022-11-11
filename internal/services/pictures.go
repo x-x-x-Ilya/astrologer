@@ -9,7 +9,7 @@ import (
 )
 
 type PicturesServiceI interface {
-	Pictures(params any) (models.Pictures, error)
+	Pictures(limit int64, offset int64) (models.Pictures, error)
 	PictureOfTheDay(date time.Time) (models.Picture, error)
 }
 
@@ -23,7 +23,7 @@ func nilErr(entityName string) error {
 	return errors.Errorf("error, %s is nil", entityName)
 }
 
-func NewPicturesService(storageService any, picturesRepository database.PicturesRepositoryI, nasaClient NasaClientI) (PicturesServiceI, error) {
+func NewPicturesService(storageService StorageServiceI, picturesRepository database.PicturesRepositoryI, nasaClient NasaClientI) (PicturesServiceI, error) {
 	if nasaClient == nil {
 		return nil, nilErr("nasaClient")
 	}
@@ -39,8 +39,8 @@ func NewPicturesService(storageService any, picturesRepository database.Pictures
 	}, nil
 }
 
-func (p PicturesService) Pictures(params any) (models.Pictures, error) {
-	pictures, err := p.picturesRepository.Pictures(params)
+func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, error) {
+	pictures, err := p.picturesRepository.Pictures(limit, offset)
 	if err != nil {
 		return models.Pictures{}, err
 	}
@@ -49,23 +49,24 @@ func (p PicturesService) Pictures(params any) (models.Pictures, error) {
 }
 
 func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error) {
-	picture, err := p.picturesRepository.Picture(date)
+	/*picture, err := p.picturesRepository.Picture(date)
 	if err != nil {
 		return models.Picture{}, err
 	}
-
+	*/
+	var picture *models.Picture
 	if picture == nil {
 		newPicture, err := p.nasaClient.Picture(date)
 		if err != nil {
 			return models.Picture{}, err
 		}
 
-		id, err := p.picturesRepository.Add(newPicture)
+		_, err = p.picturesRepository.Add(newPicture)
 		if err != nil {
 			return models.Picture{}, err
 		}
 
-		err = p.storageService.Save(id, newPicture.File)
+		err = p.storageService.Save(newPicture.Date().String(), newPicture.File())
 		if err != nil {
 			return models.Picture{}, err
 		}
@@ -73,10 +74,10 @@ func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error)
 		return newPicture, nil
 	}
 
-	picture.File, err = p.storageService.Read(picture.ID)
+	file, err := p.storageService.Read(picture.Date().String())
 	if err != nil {
 		return models.Picture{}, err
 	}
 
-	return *picture, nil
+	return models.NewPicture(date, file), nil
 }

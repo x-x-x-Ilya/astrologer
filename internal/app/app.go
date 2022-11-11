@@ -1,39 +1,61 @@
 package app
 
 import (
+	"github.com/x-x-x-Ilya/astrologer/internal/database"
+	"github.com/x-x-x-Ilya/astrologer/internal/services"
 	"net/http"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/config"
 	"github.com/x-x-x-Ilya/astrologer/internal/transport/rest"
 )
 
-func Init() {
+func InitServer() (http.Server, error) {
 	globalConfig := config.ParseConfig()
+	dbConf := globalConfig.DB()
 
-	_ = NewPostgresConnector().OpenDBConnect(globalConfig.DB())
+	err := migrationsUp(dbConf.Address(), dbConf.Port(), dbConf.User(), dbConf.Password(), dbConf.Name())
+	if err != nil {
+		return http.Server{}, err
+	}
+
+	db := NewPostgresConnector().OpenDBConnect(globalConfig.DB())
+
+	picturesRepository, err := database.NewPicturesRepository(db)
+	if err != nil {
+		return http.Server{}, err
+	}
+
+	clientService := services.NewClientService(time.Second * 10)
+
+	nasaClient, err := services.NewNasaClient(clientService)
+	if err != nil {
+		return http.Server{}, err
+	}
+
+	storageService := services.NewStorageService()
+
+	picturesService, err := services.NewPicturesService(storageService, picturesRepository, nasaClient)
+	if err != nil {
+		return http.Server{}, err
+	}
+
+	picturesController, err := rest.NewPicturesController(picturesService)
+	if err != nil {
+		return http.Server{}, err
+	}
 
 	r, err := rest.NewRouter()
 	if err != nil {
-		log.Panicf("%+v", err)
+		return http.Server{}, err
 	}
 
-	//
-	// Http server
-	//
+	r.RegisterPicturesRoutes(picturesController)
 
-	server := http.Server{
+	return http.Server{
 		Addr:         globalConfig.App().Address(),
 		ReadTimeout:  time.Second * 60,
 		WriteTimeout: time.Second * 60,
 		Handler:      r,
-	}
-
-	go func() {
-		log.Info("http server started at ", globalConfig.App().Address())
-	}()
-
-	log.Panicf("%+v", server.ListenAndServe())
+	}, nil
 }

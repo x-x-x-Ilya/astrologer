@@ -14,7 +14,7 @@ import (
 type PicturesRepositoryI interface {
 	Add(models.Picture) (int64, error)
 	Picture(date time.Time) (*models.Picture, error)
-	Pictures(params any) (models.Pictures, error)
+	Pictures(limit int64, offset int64) (models.Pictures, error)
 }
 
 type PicturesRepository struct {
@@ -37,7 +37,7 @@ func (n PicturesRepository) Add(picture models.Picture) (int64, error) {
 	panic("implement me")
 }
 
-func (n PicturesRepository) Pictures(params any) (models.Pictures, error) {
+func (n PicturesRepository) Pictures(limit int64, offset int64) (models.Pictures, error) {
 	//TODO implement me
 	panic("implement me")
 }
