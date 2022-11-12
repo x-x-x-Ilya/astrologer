@@ -15,14 +15,12 @@ type PictureParams struct {
 }
 
 type Picture struct {
-	File []byte    `json:"file"`
-	Date time.Time `json:"date"`
+	Date string `json:"date"`
 }
 
 func ToRest(domain models.Picture) Picture {
 	return Picture{
-		domain.File(),
-		domain.Date(),
+		domain.Date().Format("2006-01-02"),
 	}
 }
 

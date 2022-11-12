@@ -46,7 +46,7 @@ func (ClientService) doRequest(method string, url string, body interface{}, quer
 		reqBody = bytes.NewReader(jsonBody)
 	}
 
-	req, err := http.NewRequest(method, "https://"+url, reqBody)
+	req, err := http.NewRequest(method, url, reqBody)
 	if err != nil {
 		return nil, err
 	}

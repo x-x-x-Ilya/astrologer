@@ -28,7 +28,7 @@ func InitServer() (http.Server, error) {
 
 	clientService := services.NewClientService(time.Second * 10)
 
-	nasaClient, err := services.NewNasaClient(clientService)
+	nasaClient, err := services.NewNasaClient(globalConfig.App().ApiKey(), clientService)
 	if err != nil {
 		return http.Server{}, err
 	}

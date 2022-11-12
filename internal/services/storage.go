@@ -16,7 +16,7 @@ func NewStorageService() StorageServiceI {
 }
 
 func (StorageService) Save(fileName string, data []byte) error {
-	f, err := os.Create(fileName)
+	f, err := os.Create("./" + fileName)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (StorageService) Save(fileName string, data []byte) error {
 }
 
 func (StorageService) Read(fileName string) ([]byte, error) {
-	dat, err := os.ReadFile(fileName)
+	dat, err := os.ReadFile("./" + fileName)
 	if err != nil {
 		return nil, err
 	}

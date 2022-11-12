@@ -9,7 +9,7 @@ import (
 func main() {
 	server, err := app.InitServer()
 	if err != nil {
-		log.Panicf("%+v", err)
+		log.Panicf("%+v", err.Error())
 	}
 
 	log.Info("Server has been started")

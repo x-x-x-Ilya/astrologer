@@ -50,7 +50,7 @@ func getEnvErr(key string) error {
 }
 
 func ParseConfig() ConfigI {
-	cp := flag.String("config", ".env", "pass path to the config")
+	cp := flag.String("config", "./.env", "pass path to the config")
 
 	flag.Parse()
 

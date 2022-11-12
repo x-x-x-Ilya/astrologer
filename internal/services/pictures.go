@@ -40,44 +40,50 @@ func NewPicturesService(storageService StorageServiceI, picturesRepository datab
 }
 
 func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, error) {
-	pictures, err := p.picturesRepository.Pictures(limit, offset)
+	dbPictures, err := p.picturesRepository.Pictures(limit, offset)
 	if err != nil {
 		return models.Pictures{}, err
 	}
 
-	return pictures, nil
+	var response = make(models.Pictures, 0, len(dbPictures))
+	if dbPictures != nil {
+		for _, dbPicture := range dbPictures {
+			response = append(response, models.NewPicture(dbPicture.Date(), nil))
+		}
+	}
+
+	return response, nil
 }
 
 func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error) {
-	/*picture, err := p.picturesRepository.Picture(date)
-	if err != nil {
-		return models.Picture{}, err
-	}
-	*/
-	var picture *models.Picture
-	if picture == nil {
-		newPicture, err := p.nasaClient.Picture(date)
-		if err != nil {
-			return models.Picture{}, err
-		}
-
-		_, err = p.picturesRepository.Add(newPicture)
-		if err != nil {
-			return models.Picture{}, err
-		}
-
-		err = p.storageService.Save(newPicture.Date().String(), newPicture.File())
-		if err != nil {
-			return models.Picture{}, err
-		}
-
-		return newPicture, nil
-	}
-
-	file, err := p.storageService.Read(picture.Date().String())
+	dbPicture, err := p.picturesRepository.Picture(date)
 	if err != nil {
 		return models.Picture{}, err
 	}
 
-	return models.NewPicture(date, file), nil
+	if dbPicture != nil {
+		file, err := p.storageService.Read(dbPicture.Date().Format("2006-01-02 15:04:05"))
+		if err != nil {
+			return models.Picture{}, err
+		}
+
+		return models.NewPicture(dbPicture.Date(), file), nil
+	}
+
+	newPicture, err := p.nasaClient.Picture(date)
+	if err != nil {
+		return models.Picture{}, err
+	}
+
+	err = p.picturesRepository.Add(nil, newPicture)
+	if err != nil {
+		return models.Picture{}, err
+	}
+
+	err = p.storageService.Save(newPicture.Date().Format("2006-01-02 15:04:05"), newPicture.File())
+	if err != nil {
+		return models.Picture{}, err
+	}
+
+	return newPicture, nil
 }

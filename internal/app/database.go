@@ -24,17 +24,13 @@ func NewPostgresConnector() DatabaseConnector {
 func ConnectionString(address string, port int64, userName string, password string, dbName string) string {
 	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		address, port, userName, password, dbName)
-	if dbName != "" {
-		connectionString = fmt.Sprintf("%s dbname=%s", connectionString, dbName)
-	}
-
-	connectionString = fmt.Sprintf("%s sslmode=disable", connectionString)
 
 	return connectionString
 }
 
 func (postgresConnector) OpenDBConnect(dbConf config.DBI) *sql.DB {
 	connectionString := ConnectionString(dbConf.Address(), dbConf.Port(), dbConf.User(), dbConf.Password(), dbConf.Name())
+
 	db, err := sql.Open("postgres", connectionString)
 	for i := 0; i < 3 && err != nil; i++ {
 		log.Errorf("can't open db connect: %+v (attempt[%d])", err, i+1)

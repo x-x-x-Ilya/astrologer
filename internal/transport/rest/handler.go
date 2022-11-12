@@ -30,7 +30,7 @@ func NewPicturesController(picturesService services.PicturesServiceI) (*Pictures
 func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 	values, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, errors.WithStack(err))
+		respondWithJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -38,19 +38,19 @@ func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 
 	err = schema.NewDecoder().Decode(&reqParams, values)
 	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, err)
+		respondWithJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	pictures, err := c.picturesService.Pictures(reqParams.Limit, reqParams.Offset)
 	if err != nil {
-		respondWithJSON(w, http.StatusInternalServerError, err)
+		respondWithJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	res := transformers.ToRests(pictures)
 	if err != nil {
-		respondWithJSON(w, http.StatusInternalServerError, err)
+		respondWithJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -60,7 +60,7 @@ func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 func (c *PicturesController) pictureOfTheDay(w http.ResponseWriter, r *http.Request) {
 	values, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, errors.WithStack(err))
+		respondWithJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -68,23 +68,31 @@ func (c *PicturesController) pictureOfTheDay(w http.ResponseWriter, r *http.Requ
 
 	reqParams.Date, err = time.Parse("2006-01-02", values.Get("date"))
 	if err != nil {
-		respondWithJSON(w, http.StatusBadRequest, err)
+		respondWithJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	pictures, err := c.picturesService.PictureOfTheDay(reqParams.Date)
+	picture, err := c.picturesService.PictureOfTheDay(reqParams.Date)
 	if err != nil {
-		respondWithJSON(w, http.StatusInternalServerError, err)
+		respondWithJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	res := transformers.ToRest(pictures)
+	respondWithIMG(w, http.StatusOK, picture.File())
 	if err != nil {
-		respondWithJSON(w, http.StatusInternalServerError, err)
 		return
 	}
+}
 
-	respondWithJSON(w, http.StatusOK, res)
+func respondWithIMG(w http.ResponseWriter, code int, file []byte) {
+	w.Header().Set("Content-Type", "image/png")
+	w.WriteHeader(code)
+
+	_, err := w.Write(file)
+	if err != nil {
+		log.Errorf(err.Error())
+	}
+
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
