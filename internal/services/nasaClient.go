@@ -6,6 +6,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
 )
 
@@ -24,13 +26,11 @@ func NewNasaClient(apiKey string, client ClientServiceI) (NasaClientI, error) {
 		return nil, nilErr("client")
 	}
 
-	nasaClient := &NasaClient{
+	return &NasaClient{
 		client,
 		apiKey,
 		"https://api.nasa.gov",
-	}
-
-	return nasaClient, nil
+	}, nil
 }
 
 type pictureResponse struct {
@@ -66,26 +66,30 @@ func (n *NasaClient) Picture(date time.Time) (models.Picture, error) {
 
 	response, err := n.client.Get(n.url+"/planetary/apod/", queryParams)
 	defer closeBody(response.Body)
+
 	if err != nil {
-		return models.Picture{}, err
+		return models.Picture{}, errors.Wrapf(err, "can'transaction get response from %s for date: %s", n.url, fmt.Sprintf("%d-%d-%d", year, month, day))
 	}
 
 	var responseStruct pictureResponse
+
 	err = json.NewDecoder(response.Body).Decode(&responseStruct)
 	if err != nil {
-		return models.Picture{}, err
+		return models.Picture{}, errors.Wrapf(err, "can'transaction decode body to struct: %T %+v", responseStruct, responseStruct)
 	}
 
 	imgResponse, err := n.client.Get(responseStruct.URL, nil)
-	if err != nil {
-		return models.Picture{}, err
-	}
 	defer closeBody(imgResponse.Body)
 
+	if err != nil {
+		return models.Picture{}, errors.Wrapf(err, "can'transaction get: %s", responseStruct.URL)
+	}
+
 	buffer := make([]byte, imgResponse.ContentLength)
+
 	_, err = io.ReadFull(imgResponse.Body, buffer)
 	if err != nil {
-		return models.Picture{}, err
+		return models.Picture{}, errors.Wrapf(err, "can'transaction read response body from %s", responseStruct.URL)
 	}
 
 	return models.NewPicture(date, buffer), nil

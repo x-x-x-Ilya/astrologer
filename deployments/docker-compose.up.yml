@@ -13,12 +13,12 @@ x-logging:
 
 services:
   app:
-    image: build_app
+    image: app_image
     command: './main'
     depends_on:
       - database
     env_file:
-      - ./.env
+      - .env
     networks:
       roulette:
     ports:
@@ -37,7 +37,7 @@ services:
     networks:
       roulette:
     ports:
-      - "5432:5432"
+      - ${DOCKER_DB_PORT}:5432
     restart: *restart
     logging: *logging
 

@@ -1,13 +1,13 @@
-upgrade-backend:
+upgrade:
 	go get -u ./... && go mod tidy
 
-lint-backend:
+lint:
 	cd internal && golangci-lint run ./...
 
-build:
-	cd deployments/build && \
-	docker-compose -f docker-compose.yml build
+build-app:
+	cd ./deployments && \
+	docker-compose -f docker-compose.build.yml build
 
 up:
-	cd deployments/up && \
-	docker-compose -f up/docker-compose.base.yml --env-file .env up -d
+	cd ./deployments && \
+	docker-compose -f docker-compose.up.yml --env-file .env up -d

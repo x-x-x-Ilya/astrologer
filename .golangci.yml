@@ -50,7 +50,7 @@ linters-settings:
       ]
   varnamelen:
     ignore-names:
-      [ i, j, k, n, err, ok, w, r, db ]
+      [ tx, w, r, db ]
   nlreturn:
     block-size: 2
   gofumpt:

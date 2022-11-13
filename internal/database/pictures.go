@@ -1,14 +1,11 @@
 package database
 
 import (
-	"context"
 	"database/sql"
-	"reflect"
 	"time"
 
 	"github.com/gocraft/dbr/v2"
 	"github.com/gocraft/dbr/v2/dialect"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
@@ -49,34 +46,20 @@ func NewPicturesRepository(db *sql.DB) (PicturesRepositoryI, error) {
 		return nil, errors.New("DB can't be nil")
 	}
 
-	dbc := GetDbc(db)
 	return &PicturesRepository{
-		dbc,
+		GetDbc(db),
 	}, nil
 }
 
-type DbrSession interface {
-	Select(column ...string) *dbr.SelectStmt
-	SelectBySql(query string, value ...interface{}) *dbr.SelectStmt
-	Update(table string) *dbr.UpdateStmt
-	UpdateBySql(query string, value ...interface{}) *dbr.UpdateStmt
-	InsertInto(table string) *dbr.InsertStmt
-	InsertBySql(query string, value ...interface{}) *dbr.InsertStmt
-	DeleteFrom(table string) *dbr.DeleteStmt
-	DeleteBySql(query string, value ...interface{}) *dbr.DeleteStmt
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
-	sqlx.Execer
-	sqlx.ExecerContext
-}
-
-func GetDbrSession(db *sql.DB, tx *sql.Tx) DbrSession {
+/*
+func GetDbrSession(db *sql.DB, tx *sql.Tx)  *dbr.Tx {
 	if reflect.ValueOf(tx).IsNil() {
-		return GetDbc(db).NewSession(nil)
+		return GetDbrTransaction(GetDbc(db), tx)  // GetDbc(db).NewSession(nil)
 	} else {
 		return GetDbrTransaction(GetDbc(db), tx)
 	}
 }
+*/
 
 func GetDbrTransaction(dbc *dbr.Connection, tx *sql.Tx) *dbr.Tx {
 	sess := dbc.NewSession(nil)
@@ -92,7 +75,7 @@ func GetDbrTransaction(dbc *dbr.Connection, tx *sql.Tx) *dbr.Tx {
 }
 
 func (rep PicturesRepository) Add(tx *sql.Tx, picture models.Picture) error {
-	_, err := GetDbrSession(rep.dbr.DB, tx).
+	_, err := GetDbrTransaction(rep.dbr, tx).
 		InsertInto("pictures").
 		Columns("apod_date").
 		Values(picture.Date()).
@@ -107,33 +90,12 @@ func (rep PicturesRepository) Add(tx *sql.Tx, picture models.Picture) error {
 func (rep PicturesRepository) Pictures(limit int64, offset int64) (models.Pictures, error) {
 	var pictures Pictures
 
-	var date time.Time
-	/*rows, err := rep.dbr.NewSession(nil).
-	Select("apod_date").
-	From("pictures").
-	Limit(uint64(limit)).
-	Offset(uint64(offset)).
-	Load(&pictures)
-	*/
-	rows, err := rep.dbr.Query("SELECT apod_date FROM pictures LIMIT $1 OFFSET $2", limit, offset)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	for rows.Next() {
-		err := rows.Scan(&date)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		pictures = append(pictures, Picture{date: date})
-	}
-
-	err = rows.Err()
-	if errors.Is(err, sql.ErrNoRows) {
-		return pictures.toDomains(), nil
-	}
-
+	_, err := rep.dbr.NewSession(nil).
+		Select("apod_date").
+		From("pictures").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		Load(&pictures)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -160,14 +122,10 @@ func (rep PicturesRepository) Picture(date time.Time) (*models.Picture, error) {
 }
 
 func GetDbc(db *sql.DB) *dbr.Connection {
-	d := dialect.PostgreSQL
-
-	er := &dbr.NullEventReceiver{}
-
 	dbc := dbr.Connection{
 		DB:            db,
-		Dialect:       d,
-		EventReceiver: er,
+		Dialect:       dialect.PostgreSQL,
+		EventReceiver: &dbr.NullEventReceiver{},
 	}
 
 	return &dbc

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,12 +36,13 @@ func (s ClientService) Post(url string, body any) (*http.Response, error) {
 	return s.doRequest(http.MethodGet, url, body, nil)
 }
 
-func (ClientService) doRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error) {
+func (s ClientService) doRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error) {
 	var reqBody io.Reader
+
 	if body != nil {
 		jsonBody, err := json.Marshal(body)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 
 		reqBody = bytes.NewReader(jsonBody)
@@ -48,27 +50,29 @@ func (ClientService) doRequest(method string, url string, body interface{}, quer
 
 	req, err := http.NewRequest(method, url, reqBody)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
-	q := req.URL.Query()
+	query := req.URL.Query()
+
 	for key, values := range queryParameters {
 		for _, value := range values {
-			q.Add(key, value)
+			query.Add(key, value)
 		}
 	}
-	req.URL.RawQuery = q.Encode()
 
-	resp, err := http.DefaultClient.Do(req)
+	req.URL.RawQuery = query.Encode()
+
+	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return resp, nil
 }
 
-func closeBody(Body io.ReadCloser) {
-	err := Body.Close()
+func closeBody(body io.ReadCloser) {
+	err := body.Close()
 	if err != nil {
 		log.Error(err)
 	}

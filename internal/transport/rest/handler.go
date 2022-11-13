@@ -2,14 +2,15 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/gorilla/schema"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/x-x-x-Ilya/astrologer/internal/services"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/gorilla/schema"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/x-x-x-Ilya/astrologer/internal/services"
 	"github.com/x-x-x-Ilya/astrologer/internal/transport/rest/transformers"
 )
 
@@ -49,10 +50,6 @@ func (c *PicturesController) pictures(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := transformers.ToRests(pictures)
-	if err != nil {
-		respondWithJSON(w, http.StatusInternalServerError, err.Error())
-		return
-	}
 
 	respondWithJSON(w, http.StatusOK, res)
 }
@@ -79,9 +76,6 @@ func (c *PicturesController) pictureOfTheDay(w http.ResponseWriter, r *http.Requ
 	}
 
 	respondWithIMG(w, http.StatusOK, picture.File())
-	if err != nil {
-		return
-	}
 }
 
 func respondWithIMG(w http.ResponseWriter, code int, file []byte) {
@@ -92,7 +86,6 @@ func respondWithIMG(w http.ResponseWriter, code int, file []byte) {
 	if err != nil {
 		log.Errorf(err.Error())
 	}
-
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {

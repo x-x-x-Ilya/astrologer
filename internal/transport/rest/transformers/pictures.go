@@ -1,8 +1,9 @@
 package transformers
 
 import (
-	"github.com/x-x-x-Ilya/astrologer/internal/models"
 	"time"
+
+	"github.com/x-x-x-Ilya/astrologer/internal/models"
 )
 
 type PicturesParams struct {

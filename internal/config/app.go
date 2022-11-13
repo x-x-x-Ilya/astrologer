@@ -9,14 +9,14 @@ type App struct {
 
 type AppI interface {
 	Address() string
-	ApiKey() string
+	APIKey() string
 }
 
 func (app App) Address() string {
 	return app.address
 }
 
-func (app App) ApiKey() string {
+func (app App) APIKey() string {
 	return app.apiKey
 }
 
