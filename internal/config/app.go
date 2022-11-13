@@ -42,6 +42,8 @@ func (app *App) getEnv() error {
 		return getEnvErr(`APP_STORAGE`)
 	}
 
+	_ = os.Mkdir(app.storage, os.ModePerm) // creates storage folder if it not exists
+
 	return nil
 }
 

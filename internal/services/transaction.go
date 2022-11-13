@@ -17,7 +17,7 @@ type TransactionService struct {
 
 func NewTransactionService(transaction TransactionServiceI) (TransactionServiceI, error) {
 	if transaction == nil {
-		return nil, errors.New("transaction can'transaction be nil")
+		return nil, errors.New("transaction can't be nil")
 	}
 
 	return &TransactionService{

@@ -48,7 +48,7 @@ func NewPicturesService(
 func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, error) {
 	dbPictures, err := p.picturesRepository.Pictures(limit, offset)
 	if err != nil {
-		return models.Pictures{}, errors.Wrapf(err, "can'transaction get pictures from db with params: limit = %d, offset = %d", limit, offset)
+		return models.Pictures{}, errors.Wrapf(err, "can't get pictures from db with params: limit = %d, offset = %d", limit, offset)
 	}
 
 	response := make(models.Pictures, 0, len(dbPictures))
@@ -63,13 +63,13 @@ func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, e
 func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error) {
 	dbPicture, err := p.picturesRepository.Picture(date)
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can'transaction get picture from db for date: %s", date.String())
+		return models.Picture{}, errors.Wrapf(err, "can't get picture from db for date: %s", date.String())
 	}
 
 	if dbPicture != nil {
 		file, err := p.storageService.Read(dbPicture.Date().Format("2006-01-02 15:04:05"))
 		if err != nil {
-			return models.Picture{}, errors.Wrapf(err, "can'transaction read picture file for date: %s", dbPicture.Date().Format("2006-01-02 15:04:05"))
+			return models.Picture{}, errors.Wrapf(err, "can't read picture file for date: %s", dbPicture.Date().Format("2006-01-02 15:04:05"))
 		}
 
 		return models.NewPicture(dbPicture.Date(), file), nil
@@ -80,21 +80,24 @@ func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error)
 	err = p.transactionService.Run(func(tx *sql.Tx) error {
 		newPicture, err = p.nasaClient.Picture(date)
 		if err != nil {
-			return errors.Wrapf(err, "can'transaction request picture for date: %s", date.String())
+			return errors.Wrapf(err, "can't request picture for date: %s", date.String())
 		}
 
 		err = p.picturesRepository.Add(tx, newPicture)
 		if err != nil {
-			return errors.Wrapf(err, "can'transaction add picture: %+v", newPicture)
+			return errors.Wrapf(err, "can't add picture: %+v", newPicture)
 		}
 
 		err = p.storageService.Save(newPicture.Date().Format("2006-01-02 15:04:05"), newPicture.File())
 		if err != nil {
-			return errors.Wrapf(err, "can'transaction safe file with date: %s", newPicture.Date().Format("2006-01-02 15:04:05"))
+			return errors.Wrapf(err, "can't safe file with date: %s", newPicture.Date().Format("2006-01-02 15:04:05"))
 		}
 
 		return nil
 	})
+	if err != nil {
+		return models.Picture{}, errors.WithStack(err)
+	}
 
 	return newPicture, nil
 }

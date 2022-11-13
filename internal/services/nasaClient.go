@@ -34,7 +34,8 @@ func NewNasaClient(apiKey string, client ClientServiceI) (NasaClientI, error) {
 }
 
 type pictureResponse struct {
-	URL string `json:"hdurl"`
+	URL          string `json:"url"`
+	ResponseType string `json:"media_type"`
 }
 
 /*
@@ -68,28 +69,32 @@ func (n *NasaClient) Picture(date time.Time) (models.Picture, error) {
 	defer closeBody(response.Body)
 
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can'transaction get response from %s for date: %s", n.url, fmt.Sprintf("%d-%d-%d", year, month, day))
+		return models.Picture{}, errors.Wrapf(err, "can't get response from %s for date: %s", n.url, fmt.Sprintf("%d-%d-%d", year, month, day))
 	}
 
 	var responseStruct pictureResponse
 
 	err = json.NewDecoder(response.Body).Decode(&responseStruct)
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can'transaction decode body to struct: %T %+v", responseStruct, responseStruct)
+		return models.Picture{}, errors.Wrapf(err, "can't decode body to struct: %T %+v", responseStruct, responseStruct)
+	}
+
+	if responseStruct.ResponseType != "image" {
+		return models.Picture{}, errors.Errorf("nasa response type is not image, response type is: %s", responseStruct.ResponseType)
 	}
 
 	imgResponse, err := n.client.Get(responseStruct.URL, nil)
 	defer closeBody(imgResponse.Body)
 
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can'transaction get: %s", responseStruct.URL)
+		return models.Picture{}, errors.Wrapf(err, "can't get: %s", responseStruct.URL)
 	}
 
 	buffer := make([]byte, imgResponse.ContentLength)
 
 	_, err = io.ReadFull(imgResponse.Body, buffer)
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can'transaction read response body from %s", responseStruct.URL)
+		return models.Picture{}, errors.Wrapf(err, "can't read response body from %s", responseStruct.URL)
 	}
 
 	return models.NewPicture(date, buffer), nil

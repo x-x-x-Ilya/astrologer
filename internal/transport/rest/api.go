@@ -40,9 +40,6 @@ func NewRouter() (*Router, error) {
 	}, nil
 }
 
-// GET pictures?limit=1&offset=0 (картинки дня всего альбома)
-// GET pictures?date=2022-11-11 (картинка дня на указанный день)
-
 func (r *Router) RegisterPicturesRoutes(controller *PicturesController) *Router {
 	pictures := r.PathPrefix("/pictures").Subrouter()
 

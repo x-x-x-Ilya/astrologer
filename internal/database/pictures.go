@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/gocraft/dbr/v2"
@@ -51,16 +52,6 @@ func NewPicturesRepository(db *sql.DB) (PicturesRepositoryI, error) {
 	}, nil
 }
 
-/*
-func GetDbrSession(db *sql.DB, tx *sql.Tx)  *dbr.Tx {
-	if reflect.ValueOf(tx).IsNil() {
-		return GetDbrTransaction(GetDbc(db), tx)  // GetDbc(db).NewSession(nil)
-	} else {
-		return GetDbrTransaction(GetDbc(db), tx)
-	}
-}
-*/
-
 func GetDbrTransaction(dbc *dbr.Connection, tx *sql.Tx) *dbr.Tx {
 	sess := dbc.NewSession(nil)
 
@@ -90,14 +81,27 @@ func (rep PicturesRepository) Add(tx *sql.Tx, picture models.Picture) error {
 func (rep PicturesRepository) Pictures(limit int64, offset int64) (models.Pictures, error) {
 	var pictures Pictures
 
-	_, err := rep.dbr.NewSession(nil).
-		Select("apod_date").
-		From("pictures").
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		Load(&pictures)
+	rows, err := rep.dbr.NewSession(nil).Query("SELECT apod_date FROM pictures LIMIT $1 OFFSET $2", limit, offset)
+
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Panicf("can't close db rows %+v", err)
+		}
+	}()
+
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+
+	var date time.Time
+	for rows.Next() {
+		err = rows.Scan(&date)
+		if err != nil {
+			log.Panicf("can't scan migrationID: %+v", err)
+		}
+
+		pictures = append(pictures, Picture{date: date})
 	}
 
 	return pictures.toDomains(), nil
@@ -106,7 +110,10 @@ func (rep PicturesRepository) Pictures(limit int64, offset int64) (models.Pictur
 func (rep PicturesRepository) Picture(date time.Time) (*models.Picture, error) {
 	var picture Picture
 
-	err := rep.dbr.QueryRow("SELECT apod_date FROM pictures WHERE apod_date >= $1 and apod_date < $2", date, date.AddDate(0, 0, 1)).Scan(&picture.date)
+	err := rep.dbr.QueryRow(
+		"SELECT apod_date FROM pictures WHERE apod_date >= $1 and apod_date < $2",
+		date, date.AddDate(0, 0, 1)).
+		Scan(&picture.date)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
