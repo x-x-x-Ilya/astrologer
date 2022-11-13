@@ -2,12 +2,12 @@ package database
 
 import (
 	"database/sql"
-	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/gocraft/dbr/v2"
 	"github.com/gocraft/dbr/v2/dialect"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
 )

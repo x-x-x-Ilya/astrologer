@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 type ClientServiceI interface {
@@ -69,11 +68,4 @@ func (s ClientService) doRequest(method string, url string, body interface{}, qu
 	}
 
 	return resp, nil
-}
-
-func closeBody(body io.ReadCloser) {
-	err := body.Close()
-	if err != nil {
-		log.Error(err)
-	}
 }
