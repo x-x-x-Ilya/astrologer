@@ -1,0 +1,12 @@
+APP_ADDRESS=:8080
+API_KEY=dsif0ji5o8a87jsfd46u3iasodfj
+APP_STORAGE=./folder/
+
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=astrologer
+DB_HOST=database
+DB_PORT=5432
+
+DOCKER_DB_PORT=5432
+DOCKER_APP_PORT=8080
