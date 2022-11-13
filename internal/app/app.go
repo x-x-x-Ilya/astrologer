@@ -45,7 +45,7 @@ func InitServer() (http.Server, error) {
 		return http.Server{}, errors.WithStack(err)
 	}
 
-	storageService := services.NewStorageService()
+	storageService := services.NewStorageService(globalConfig.App().Storage())
 
 	picturesService, err := services.NewPicturesService(storageService, picturesRepository, nasaClient, transactionService)
 	if err != nil {

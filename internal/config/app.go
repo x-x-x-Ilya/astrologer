@@ -5,11 +5,13 @@ import "os"
 type App struct {
 	address string
 	apiKey  string
+	storage string
 }
 
 type AppI interface {
 	Address() string
 	APIKey() string
+	Storage() string
 }
 
 func (app App) Address() string {
@@ -18,6 +20,10 @@ func (app App) Address() string {
 
 func (app App) APIKey() string {
 	return app.apiKey
+}
+
+func (app App) Storage() string {
+	return app.storage
 }
 
 func (app *App) getEnv() error {
@@ -29,6 +35,11 @@ func (app *App) getEnv() error {
 	app.apiKey = os.Getenv(`API_KEY`)
 	if app.apiKey == "" {
 		return getEnvErr(`API_KEY`)
+	}
+
+	app.storage = os.Getenv(`APP_STORAGE`)
+	if app.apiKey == "" {
+		return getEnvErr(`APP_STORAGE`)
 	}
 
 	return nil

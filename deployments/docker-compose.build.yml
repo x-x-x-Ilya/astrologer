@@ -5,5 +5,7 @@ services:
     build:
       context: ../
       dockerfile: ./build/Dockerfile
+      args:
+        APP_STORAGE: ${APP_STORAGE}
       network: host
     image: app_image

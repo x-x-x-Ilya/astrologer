@@ -11,14 +11,18 @@ type StorageServiceI interface {
 	Read(fileName string) ([]byte, error)
 }
 
-type StorageService struct{}
-
-func NewStorageService() StorageServiceI {
-	return StorageService{}
+type StorageService struct {
+	storagePath string
 }
 
-func (StorageService) Save(fileName string, data []byte) error {
-	f, err := os.Create("./" + fileName)
+func NewStorageService(storagePath string) StorageServiceI {
+	return StorageService{
+		storagePath,
+	}
+}
+
+func (s StorageService) Save(fileName string, data []byte) error {
+	f, err := os.Create(s.storagePath + fileName)
 	if err != nil {
 		return errors.Wrapf(err, "creating file with name %s failed", fileName)
 	}
@@ -31,8 +35,8 @@ func (StorageService) Save(fileName string, data []byte) error {
 	return nil
 }
 
-func (StorageService) Read(fileName string) ([]byte, error) {
-	dat, err := os.ReadFile("./" + fileName)
+func (s StorageService) Read(fileName string) ([]byte, error) {
+	dat, err := os.ReadFile(s.storagePath + fileName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading file with name %s failed", fileName)
 	}
