@@ -5,22 +5,11 @@ import (
 	"time"
 
 	"github.com/gocraft/dbr/v2"
-	"github.com/gocraft/dbr/v2/dialect"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
 )
-
-type PicturesRepositoryI interface {
-	Add(tx *sql.Tx, picture models.Picture) error
-	Picture(date time.Time) (*models.Picture, error)
-	Pictures(limit int64, offset int64) (models.Pictures, error)
-}
-
-type PicturesRepository struct {
-	dbr *dbr.Connection
-}
 
 type Picture struct {
 	date time.Time `db:"apod_date"`
@@ -42,6 +31,16 @@ func (p Pictures) toDomains() models.Pictures {
 	return domains
 }
 
+type PicturesRepositoryI interface {
+	Add(tx *sql.Tx, picture models.Picture) error
+	Picture(date time.Time) (*models.Picture, error)
+	Pictures(limit int64, offset int64) (models.Pictures, error)
+}
+
+type PicturesRepository struct {
+	dbr *dbr.Connection
+}
+
 func NewPicturesRepository(db *sql.DB) (PicturesRepositoryI, error) {
 	if db == nil {
 		return nil, errors.New("DB can't be nil")
@@ -50,19 +49,6 @@ func NewPicturesRepository(db *sql.DB) (PicturesRepositoryI, error) {
 	return &PicturesRepository{
 		GetDbc(db),
 	}, nil
-}
-
-func GetDbrTransaction(dbc *dbr.Connection, tx *sql.Tx) *dbr.Tx {
-	sess := dbc.NewSession(nil)
-
-	dbrTx := dbr.Tx{
-		EventReceiver: sess.EventReceiver,
-		Dialect:       sess.Dialect,
-		Tx:            tx,
-		Timeout:       sess.Timeout,
-	}
-
-	return &dbrTx
 }
 
 func (rep PicturesRepository) Add(tx *sql.Tx, picture models.Picture) error {
@@ -126,14 +112,4 @@ func (rep PicturesRepository) Picture(date time.Time) (*models.Picture, error) {
 	domainPicture := picture.toDomain()
 
 	return &domainPicture, nil
-}
-
-func GetDbc(db *sql.DB) *dbr.Connection {
-	dbc := dbr.Connection{
-		DB:            db,
-		Dialect:       dialect.PostgreSQL,
-		EventReceiver: &dbr.NullEventReceiver{},
-	}
-
-	return &dbc
 }

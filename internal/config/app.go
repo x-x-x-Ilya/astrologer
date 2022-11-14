@@ -27,19 +27,25 @@ func (app App) Storage() string {
 }
 
 func (app *App) getEnv() error {
-	app.address = os.Getenv(`APP_ADDRESS`)
+	const (
+		Address = `APP_ADDRESS`
+		APIKey  = `API_KEY`
+		Storage = `APP_STORAGE`
+	)
+
+	app.address = os.Getenv(Address)
 	if app.address == "" {
-		return getEnvErr(`APP_ADDRESS`)
+		return getEnvErr(Address)
 	}
 
-	app.apiKey = os.Getenv(`API_KEY`)
+	app.apiKey = os.Getenv(APIKey)
 	if app.apiKey == "" {
-		return getEnvErr(`API_KEY`)
+		return getEnvErr(APIKey)
 	}
 
-	app.storage = os.Getenv(`APP_STORAGE`)
+	app.storage = os.Getenv(Storage)
 	if app.apiKey == "" {
-		return getEnvErr(`APP_STORAGE`)
+		return getEnvErr(Storage)
 	}
 
 	_ = os.Mkdir(app.storage, os.ModePerm) // creates storage folder if it not exists

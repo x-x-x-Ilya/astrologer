@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 
+	"github.com/gocraft/dbr/v2"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -88,4 +89,17 @@ func HandleTxError(tx *sql.Tx, err error) error {
 	}
 
 	return err
+}
+
+func GetDbrTransaction(dbc *dbr.Connection, tx *sql.Tx) *dbr.Tx {
+	sess := dbc.NewSession(nil)
+
+	dbrTx := dbr.Tx{
+		EventReceiver: sess.EventReceiver,
+		Dialect:       sess.Dialect,
+		Tx:            tx,
+		Timeout:       sess.Timeout,
+	}
+
+	return &dbrTx
 }
