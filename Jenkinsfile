@@ -7,12 +7,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Declarative Building..'
+                sh 'make build-app'
             }
         }
-        stage('Test') {
+        stage('Lint') {
             steps {
-                echo 'Declarative Testing..'
+                sh 'make lint'
             }
         }
         stage('Deploy') {
@@ -20,19 +20,5 @@ pipeline {
                 echo 'Declarative Deploying....'
             }
         }
-    }
-}
-
-// Script //
-
-node {
-    stage('Build') {
-        echo 'Script Building....'
-    }
-    stage('Test') {
-        echo 'Script Testing....'
-    }
-    stage('Deploy') {
-        echo 'Script Deploying....'
     }
 }
