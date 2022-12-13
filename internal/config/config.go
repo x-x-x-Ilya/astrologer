@@ -45,10 +45,6 @@ func (conf Config) DB() DBI {
 	return conf.db
 }
 
-func getEnvErr(key string) error {
-	return errors.Errorf("env key %s not found", key)
-}
-
 func ParseConfig() ConfigI {
 	cp := flag.String("config", "./.env", "pass path to the config")
 
@@ -66,4 +62,8 @@ func loadConfig(confPath string) (ConfigI, error) {
 	_ = godotenv.Load(confPath)
 
 	return newConfig()
+}
+
+func getEnvErr(key string) error {
+	return errors.Errorf("env key %s not found", key)
 }

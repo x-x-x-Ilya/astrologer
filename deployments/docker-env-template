@@ -5,7 +5,7 @@ APP_STORAGE=./folder/
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=astrologer
-DB_HOST=database
+DB_ADDRESS=database
 DB_PORT=5432
 
 DOCKER_DB_PORT=5432

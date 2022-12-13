@@ -41,8 +41,10 @@ type pictureResponse struct {
 
 func (n *NasaClient) Picture(date time.Time) (models.Picture, error) {
 	year, month, day := date.Date()
+	queryDate := fmt.Sprintf("%d-%d-%d", year, month, day)
+
 	queryParams := map[string][]string{
-		"date":    {fmt.Sprintf("%d-%d-%d", year, month, day)},
+		"date":    {queryDate},
 		"api_key": {n.apiKey},
 	}
 
@@ -55,7 +57,7 @@ func (n *NasaClient) Picture(date time.Time) (models.Picture, error) {
 	}()
 
 	if err != nil {
-		return models.Picture{}, errors.Wrapf(err, "can't get response from %s for date: %s", n.url, fmt.Sprintf("%d-%d-%d", year, month, day))
+		return models.Picture{}, errors.Wrapf(err, "can't get response from %s for date: %s", n.url, queryDate)
 	}
 
 	var responseStruct pictureResponse

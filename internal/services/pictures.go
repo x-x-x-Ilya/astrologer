@@ -11,7 +11,7 @@ import (
 )
 
 type PicturesServiceI interface {
-	Pictures(limit int64, offset int64) (models.Pictures, error)
+	Pictures(limit, offset int64) (models.Pictures, error)
 	PictureOfTheDay(date time.Time) (models.Picture, error)
 }
 
@@ -45,7 +45,7 @@ func NewPicturesService(
 	}, nil
 }
 
-func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, error) {
+func (p PicturesService) Pictures(limit, offset int64) (models.Pictures, error) {
 	dbPictures, err := p.picturesRepository.Pictures(limit, offset)
 	if err != nil {
 		return models.Pictures{}, errors.Wrapf(err, "can't get pictures from db with params: limit = %d, offset = %d", limit, offset)
@@ -54,7 +54,7 @@ func (p PicturesService) Pictures(limit int64, offset int64) (models.Pictures, e
 	response := make(models.Pictures, 0, len(dbPictures))
 
 	for _, dbPicture := range dbPictures {
-		response = append(response, models.NewPicture(dbPicture.Date(), nil))
+		response = append(response, models.NewPicture(dbPicture.AsTime(), nil))
 	}
 
 	return response, nil
@@ -67,12 +67,12 @@ func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error)
 	}
 
 	if dbPicture != nil {
-		file, err := p.storageService.Read(dbPicture.Date().Format("2006-01-02 15:04:05"))
+		file, err := p.storageService.Read(dbPicture.Date())
 		if err != nil {
-			return models.Picture{}, errors.Wrapf(err, "can't read picture file for date: %s", dbPicture.Date().Format("2006-01-02 15:04:05"))
+			return models.Picture{}, errors.Wrapf(err, "can't read picture file for date: %s", dbPicture.Date())
 		}
 
-		return models.NewPicture(dbPicture.Date(), file), nil
+		return models.NewPicture(dbPicture.AsTime(), file), nil
 	}
 
 	var newPicture models.Picture
@@ -88,9 +88,9 @@ func (p PicturesService) PictureOfTheDay(date time.Time) (models.Picture, error)
 			return errors.Wrapf(err, "can't add picture: %+v", newPicture)
 		}
 
-		err = p.storageService.Save(newPicture.Date().Format("2006-01-02 15:04:05"), newPicture.File())
+		err = p.storageService.Save(newPicture.Date(), newPicture.File())
 		if err != nil {
-			return errors.Wrapf(err, "can't safe file with date: %s", newPicture.Date().Format("2006-01-02 15:04:05"))
+			return errors.Wrapf(err, "can't safe file with date: %s", newPicture.Date())
 		}
 
 		return nil

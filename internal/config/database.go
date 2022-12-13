@@ -37,29 +37,37 @@ func newDBConfig() (DBI, error) {
 func (db *DB) getEnv() error {
 	var err error
 
-	db.user = os.Getenv(`DB_USER`)
+	const (
+		UserName = `DB_USER`
+		Password = `DB_PASSWORD`
+		Name     = `DB_NAME`
+		Address  = `DB_ADDRESS`
+		Port     = `DB_PORT`
+	)
+
+	db.user = os.Getenv(UserName)
 	if db.user == "" {
-		return getEnvErr(`DB_USER`)
+		return getEnvErr(UserName)
 	}
 
-	db.password = os.Getenv(`DB_PASSWORD`)
+	db.password = os.Getenv(Password)
 	if db.password == "" {
-		return getEnvErr(`DB_PASSWORD`)
+		return getEnvErr(Password)
 	}
 
-	db.name = os.Getenv(`DB_NAME`)
+	db.name = os.Getenv(Name)
 	if db.name == "" {
-		return getEnvErr(`DB_NAME`)
+		return getEnvErr(Name)
 	}
 
-	db.address = os.Getenv(`DB_HOST`)
+	db.address = os.Getenv(Address)
 	if db.address == "" {
-		return getEnvErr(`DB_HOST`)
+		return getEnvErr(Address)
 	}
 
-	db.port, err = strconv.ParseInt(os.Getenv(`DB_PORT`), 10, 64)
+	db.port, err = strconv.ParseInt(os.Getenv(Port), 10, 64)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.Wrap(err, Port+" is invalid")
 	}
 
 	return nil

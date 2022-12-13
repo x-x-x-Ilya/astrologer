@@ -13,15 +13,18 @@ import (
 )
 
 func InitServer() (http.Server, error) {
-	globalConfig := config.ParseConfig()
-	dbConf := globalConfig.DB()
+	var (
+		globalConfig = config.ParseConfig()
+		dbConfig     = globalConfig.DB()
+		appConfig    = globalConfig.App()
+	)
 
-	err := migrationsUp(dbConf.Address(), dbConf.Port(), dbConf.User(), dbConf.Password(), dbConf.Name())
+	err := migrationsUp(dbConfig.Address(), dbConfig.Port(), dbConfig.User(), dbConfig.Password(), dbConfig.Name())
 	if err != nil {
 		return http.Server{}, errors.WithStack(err)
 	}
 
-	db := NewPostgresConnector().OpenDBConnect(globalConfig.DB())
+	db := NewPostgresConnector().OpenDBConnect(dbConfig)
 
 	transaction, err := database.NewTransaction(db)
 	if err != nil {
@@ -40,12 +43,12 @@ func InitServer() (http.Server, error) {
 
 	clientService := services.NewClientService(time.Second * 10)
 
-	nasaClient, err := services.NewNasaClient(globalConfig.App().APIKey(), clientService)
+	nasaClient, err := services.NewNasaClient(appConfig.APIKey(), clientService)
 	if err != nil {
 		return http.Server{}, errors.WithStack(err)
 	}
 
-	storageService := services.NewStorageService(globalConfig.App().Storage())
+	storageService := services.NewStorageService(appConfig.Storage())
 
 	picturesService, err := services.NewPicturesService(storageService, picturesRepository, nasaClient, transactionService)
 	if err != nil {
@@ -65,7 +68,7 @@ func InitServer() (http.Server, error) {
 	r.RegisterPicturesRoutes(picturesController)
 
 	return http.Server{
-		Addr:         globalConfig.App().Address(),
+		Addr:         appConfig.Address(),
 		ReadTimeout:  time.Second * 60,
 		WriteTimeout: time.Second * 60,
 		Handler:      r,

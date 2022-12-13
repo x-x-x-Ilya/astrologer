@@ -21,7 +21,7 @@ type Picture struct {
 
 func ToRest(domain models.Picture) Picture {
 	return Picture{
-		domain.Date().Format("2006-01-02"),
+		domain.Date(),
 	}
 }
 
