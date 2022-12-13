@@ -1,4 +1,6 @@
+
 // Declarative //
+
 pipeline {
     agent any
 
@@ -20,7 +22,9 @@ pipeline {
         }
     }
 }
+
 // Script //
+
 node {
     stage('Build') {
         echo 'Building....'
