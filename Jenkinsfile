@@ -17,7 +17,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                echo 'Declarative Deploying....'
+                echo 'Declarative Deploying log....'
             }
         }
     }
