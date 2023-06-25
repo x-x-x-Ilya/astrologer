@@ -43,8 +43,11 @@ func NewRouter() (*Router, error) {
 func (r *Router) RegisterPicturesRoutes(controller *PicturesController) *Router {
 	pictures := r.PathPrefix("/pictures").Subrouter()
 
-	pictures.HandleFunc("", controller.pictures).Methods(http.MethodGet, http.MethodOptions).Queries("limit", "{limit:[0-9]+}", "offset", "{offset:[0-9]+}")
-	pictures.HandleFunc("", controller.pictureOfTheDay).Methods(http.MethodGet, http.MethodOptions).Queries("date", "{date:\\d{4}-\\d{2}-\\d{2}}")
+	pictures.HandleFunc("", controller.pictures).Methods(http.MethodGet, http.MethodOptions).
+		Queries("limit", "{limit:[0-9]+}", "offset", "{offset:[0-9]+}")
+
+	pictures.HandleFunc("", controller.pictureOfTheDay).Methods(http.MethodGet, http.MethodOptions).
+		Queries("date", "{date:\\d{4}-\\d{2}-\\d{2}}")
 
 	return r
 }

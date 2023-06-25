@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/x-x-x-Ilya/astrologer/internal/helpers"
 	"github.com/x-x-x-Ilya/astrologer/internal/services"
 	"github.com/x-x-x-Ilya/astrologer/internal/transport/rest/transformers"
 )
@@ -19,8 +20,9 @@ type PicturesController struct {
 }
 
 func NewPicturesController(picturesService services.PicturesServiceI) (*PicturesController, error) {
-	if picturesService == nil {
-		return nil, errors.New("nil")
+	err := helpers.IsNotNil(picturesService)
+	if err != nil {
+		return nil, errors.Wrapf(err, "err picturesService")
 	}
 
 	return &PicturesController{

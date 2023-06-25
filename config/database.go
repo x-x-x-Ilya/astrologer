@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -13,9 +14,10 @@ type DBI interface {
 	Name() string
 	Address() string
 	Port() int64
+	ConnectionString() string
 }
 
-type DB struct {
+type db struct {
 	user     string
 	password string
 	name     string
@@ -24,7 +26,7 @@ type DB struct {
 }
 
 func newDBConfig() (DBI, error) {
-	var db DB
+	var db db
 
 	err := db.getEnv()
 	if err != nil {
@@ -34,7 +36,7 @@ func newDBConfig() (DBI, error) {
 	return db, nil
 }
 
-func (db *DB) getEnv() error {
+func (db *db) getEnv() error {
 	var err error
 
 	const (
@@ -73,22 +75,29 @@ func (db *DB) getEnv() error {
 	return nil
 }
 
-func (db DB) User() string {
+func (db db) ConnectionString() string {
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		db.Address(), db.Port(), db.User(), db.Password(), db.Name())
+
+	return connectionString
+}
+
+func (db db) User() string {
 	return db.user
 }
 
-func (db DB) Password() string {
+func (db db) Password() string {
 	return db.password
 }
 
-func (db DB) Name() string {
+func (db db) Name() string {
 	return db.name
 }
 
-func (db DB) Address() string {
+func (db db) Address() string {
 	return db.address
 }
 
-func (db DB) Port() int64 {
+func (db db) Port() int64 {
 	return db.port
 }

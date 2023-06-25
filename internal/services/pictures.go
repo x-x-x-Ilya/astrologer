@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/database"
+	"github.com/x-x-x-Ilya/astrologer/internal/helpers"
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
 )
 
@@ -22,19 +23,13 @@ type PicturesService struct {
 	transactionService TransactionServiceI
 }
 
-func nilErr(entityName string) error {
-	return errors.Errorf("error, %s is nil", entityName)
-}
-
 func NewPicturesService(
-	storageService StorageServiceI, picturesRepository database.PicturesRepositoryI, nasaClient NasaClientI, transactionService TransactionServiceI,
+	storageService StorageServiceI, picturesRepository database.PicturesRepositoryI,
+	nasaClient NasaClientI, transactionService TransactionServiceI,
 ) (PicturesServiceI, error) {
-	if nasaClient == nil {
-		return nil, nilErr("nasaClient")
-	}
-
-	if picturesRepository == nil {
-		return nil, nilErr("picturesRepository")
+	err := helpers.IsNotNil(nasaClient, picturesRepository, storageService, transactionService)
+	if err != nil {
+		return nil, errors.Wrapf(err, "err NewPicturesService")
 	}
 
 	return PicturesService{

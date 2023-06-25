@@ -6,8 +6,8 @@ lint:
 
 build-app:
 	cd ./deployments && \
-	docker-compose -f docker-compose.build.yml build
+	docker compose -f docker-compose.build.yml build
 
 up:
 	cd ./deployments && \
-	docker-compose -f docker-compose.up.yml --env-file .env up -d
+	docker compose -f docker-compose.up.yml --env-file .env up -d

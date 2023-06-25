@@ -1,3 +1,5 @@
+// Package config consist of files that contain config components(initialization and reading) interfaces with implementation
+// and config.go file that combines all of them in one ConfigI that only available outside the package.
 package config
 
 import (
@@ -13,14 +15,14 @@ type ConfigI interface {
 	DB() DBI
 }
 
-type Config struct {
+type config struct {
 	app AppI
 	db  DBI
 }
 
 func newConfig() (ConfigI, error) {
 	var (
-		config Config
+		config config
 		err    error
 	)
 
@@ -37,11 +39,11 @@ func newConfig() (ConfigI, error) {
 	return config, nil
 }
 
-func (conf Config) App() AppI {
+func (conf config) App() AppI {
 	return conf.app
 }
 
-func (conf Config) DB() DBI {
+func (conf config) DB() DBI {
 	return conf.db
 }
 

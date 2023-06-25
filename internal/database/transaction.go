@@ -6,6 +6,8 @@ import (
 	"github.com/gocraft/dbr/v2"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/x-x-x-Ilya/astrologer/internal/helpers"
 )
 
 type Transaction struct {
@@ -15,11 +17,12 @@ type Transaction struct {
 type TransactionFn = func(tx *sql.Tx) error
 
 func NewTransaction(db *sql.DB) (*Transaction, error) {
-	if db == nil {
-		return nil, errors.New("DB can't be nil")
+	err := helpers.IsNotNil(db)
+	if err != nil {
+		return nil, errors.Wrapf(err, "err NewTransaction")
 	}
 
-	return &Transaction{db: db}, nil
+	return &Transaction{db}, nil
 }
 
 func (t *Transaction) Run(fn TransactionFn) error {

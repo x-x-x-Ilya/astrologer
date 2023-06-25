@@ -9,7 +9,12 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/x-x-x-Ilya/astrologer/internal/helpers"
 	"github.com/x-x-x-Ilya/astrologer/internal/models"
+)
+
+const (
+	nasaAddress = "https://api.nasa.gov"
 )
 
 type NasaClientI interface {
@@ -23,14 +28,15 @@ type NasaClient struct {
 }
 
 func NewNasaClient(apiKey string, client ClientServiceI) (NasaClientI, error) {
-	if client == nil {
-		return nil, nilErr("client")
+	err := helpers.IsNotNil(client)
+	if err != nil {
+		return nil, errors.Wrapf(err, "err NewNasaClient")
 	}
 
 	return &NasaClient{
 		client,
 		apiKey,
-		"https://api.nasa.gov",
+		nasaAddress,
 	}, nil
 }
 

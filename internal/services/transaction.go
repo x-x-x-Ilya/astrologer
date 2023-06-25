@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/x-x-x-Ilya/astrologer/internal/database"
+	"github.com/x-x-x-Ilya/astrologer/internal/helpers"
 )
 
 type TransactionServiceI interface {
@@ -16,8 +17,9 @@ type TransactionService struct {
 }
 
 func NewTransactionService(transaction TransactionServiceI) (TransactionServiceI, error) {
-	if transaction == nil {
-		return nil, errors.New("transaction can't be nil")
+	err := helpers.IsNotNil(transaction)
+	if err != nil {
+		return nil, errors.Wrapf(err, "err NewTransactionService")
 	}
 
 	return &TransactionService{

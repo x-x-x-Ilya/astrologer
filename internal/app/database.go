@@ -2,13 +2,18 @@ package app
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/x-x-x-Ilya/astrologer/internal/config"
+	"github.com/x-x-x-Ilya/astrologer/config"
+)
+
+const (
+	dbDriver        = "postgres"
+	retriesInterval = time.Second * 30
+	retriesAmount   = 3
 )
 
 type DatabaseConnector interface {
@@ -21,23 +26,16 @@ func NewPostgresConnector() DatabaseConnector {
 	return postgresConnector{}
 }
 
-func ConnectionString(address string, port int64, userName string, password string, dbName string) string {
-	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		address, port, userName, password, dbName)
-
-	return connectionString
-}
-
 func (postgresConnector) OpenDBConnect(dbConf config.DBI) *sql.DB {
-	connectionString := ConnectionString(dbConf.Address(), dbConf.Port(), dbConf.User(), dbConf.Password(), dbConf.Name())
+	connStr := dbConf.ConnectionString()
 
-	db, err := sql.Open("postgres", connectionString)
-	for i := 0; i < 3 && err != nil; i++ {
+	db, err := sql.Open(dbDriver, connStr)
+	for i := 0; i < retriesAmount && err != nil; i++ {
 		log.Errorf("can't open db connect: %+v (attempt[%d])", err, i+1)
 
-		time.Sleep(time.Second * 30)
+		time.Sleep(retriesInterval)
 
-		db, err = sql.Open("postgres", connectionString)
+		db, err = sql.Open(dbDriver, connStr)
 	}
 
 	if err != nil {
@@ -45,10 +43,10 @@ func (postgresConnector) OpenDBConnect(dbConf config.DBI) *sql.DB {
 	}
 
 	err = db.Ping()
-	for i := 0; i < 3 && err != nil; i++ {
+	for i := 0; i < retriesAmount && err != nil; i++ {
 		log.Errorf("can't ping db connect: %+v (attempt[%d])", err, i+1)
 
-		time.Sleep(time.Second * 30)
+		time.Sleep(retriesInterval)
 
 		err = db.Ping()
 	}

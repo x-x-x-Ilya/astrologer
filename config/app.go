@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-type App struct {
+type app struct {
 	address string
 	apiKey  string
 	storage string
@@ -14,19 +14,19 @@ type AppI interface {
 	Storage() string
 }
 
-func (app App) Address() string {
+func (app app) Address() string {
 	return app.address
 }
 
-func (app App) APIKey() string {
+func (app app) APIKey() string {
 	return app.apiKey
 }
 
-func (app App) Storage() string {
+func (app app) Storage() string {
 	return app.storage
 }
 
-func (app *App) getEnv() error {
+func (app *app) fillFromEnv() error {
 	const (
 		Address = `APP_ADDRESS`
 		APIKey  = `API_KEY`
@@ -54,9 +54,9 @@ func (app *App) getEnv() error {
 }
 
 func newAppConfig() (AppI, error) {
-	var app App
+	var app app
 
-	err := app.getEnv()
+	err := app.fillFromEnv()
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-func migrationsUp(address string, port int64, userName string, password string, dbName string) error {
+func migrationsUp(connectionString string) error {
 	migrations := &migrate.MemoryMigrationSource{
 		Migrations: []*migrate.Migration{
 			{
@@ -19,14 +19,12 @@ func migrationsUp(address string, port int64, userName string, password string, 
 		},
 	}
 
-	connectionString := ConnectionString(address, port, userName, password, dbName)
-
-	db, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open(dbDriver, connectionString)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	_, err = migrate.Exec(db, "postgres", migrations, migrate.Up)
+	_, err = migrate.Exec(db, dbDriver, migrations, migrate.Up)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -16,7 +16,7 @@ type ClientServiceI interface {
 }
 
 type ClientService struct {
-	client http.Client
+	http.Client
 }
 
 func NewClientService(timeout time.Duration) ClientServiceI {
@@ -35,7 +35,7 @@ func (s ClientService) Post(url string, body any) (*http.Response, error) {
 	return s.doRequest(http.MethodGet, url, body, nil)
 }
 
-func (s ClientService) doRequest(method string, url string, body interface{}, queryParameters map[string][]string) (*http.Response, error) {
+func (s ClientService) doRequest(method, url string, body any, queryParameters map[string][]string) (*http.Response, error) {
 	var reqBody io.Reader
 
 	if body != nil {
@@ -62,7 +62,7 @@ func (s ClientService) doRequest(method string, url string, body interface{}, qu
 
 	req.URL.RawQuery = query.Encode()
 
-	resp, err := s.client.Do(req)
+	resp, err := s.Do(req)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
